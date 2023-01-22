@@ -1,3 +1,4 @@
+use pinyin::{ToPinyin, ToPinyinMulti};
 use std::{
     collections::VecDeque,
     fs::File,
@@ -16,6 +17,10 @@ impl Structure {
 }
 
 fn main() {
+    ids();
+}
+
+fn ids() {
     let file = File::open("ids/ids_lv2.txt").unwrap();
     let reader = BufReader::new(file);
 
@@ -25,8 +30,17 @@ fn main() {
         Ok(entry) => {
             let res = parse(&entry);
             if res.len() > 3 {
-                parsed += 1;
-                println!("{:?}", res);
+                let mut flag = false;
+                for 多音 in res.chars().next().unwrap().to_pinyin_multi() {
+                    for 音 in 多音 {
+                        flag = true;
+                        print!("{} ", 音.with_tone_num());
+                    }
+                }
+                if flag {
+                    parsed += 1;
+                }
+                println!("{}", res);
             }
             total += 1;
         }
@@ -60,18 +74,12 @@ fn parse(entry: &str) -> String {
                 s
             };
             let chars: Vec<char> = s.chars().collect();
-            let mut flag = false;
-            for structure in &structures {
-                if structure.symbol == chars[0] && chars.len() == structure.count as usize + 1 {
-                    flag = true;
-                    break;
-                }
-            }
-            if flag {
-                Some(s.to_string())
-            } else {
-                None
-            }
+            structures
+                .iter()
+                .any(|structure| {
+                    chars[0] == structure.symbol && chars.len() == structure.count as usize + 1
+                })
+                .then_some(s.to_string())
         })
         .collect();
     if v.len() > 0 {
@@ -80,3 +88,17 @@ fn parse(entry: &str) -> String {
         "".to_string()
     }
 }
+
+/* fn pinyin_to_pbyb(p: &str) -> String {
+    let mut pbyb = String::new();
+    let 声母 = if p.starts_with("sh") {
+        'u'
+    } else if p.starts_with("ch") {
+        'i'
+    } else if p.starts_with("zh") {
+        'v'
+    } else {
+        p.chars().next().unwrap()
+    };
+}
+ */
