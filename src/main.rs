@@ -1,3 +1,5 @@
+pub mod flypy;
+
 use pinyin::{ToPinyin, ToPinyinMulti};
 use std::{
     collections::VecDeque,
