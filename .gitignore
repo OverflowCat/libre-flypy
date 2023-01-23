@@ -1,2 +1,4 @@
 ids
 target
+*.db
+*.sqlite

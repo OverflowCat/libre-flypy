@@ -20,6 +20,9 @@ path = "src/idc.rs"
 name = "ids"
 path = "src/main.rs"
 
+[profile.dev]
+opt-level = 3
+
 [dependencies]
 anyhow = "1.0.68"
 ascii = "1.1.0"

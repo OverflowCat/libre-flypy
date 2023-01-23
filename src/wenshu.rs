@@ -1,13 +1,13 @@
 use ascii::AsAsciiStr;
-use rayon::prelude::*;
+use core::panic;
 use rusqlite::Connection;
 use std::collections::HashMap;
 pub mod flypy;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChaiziRow {
-    z: String,
-    s: String,
+    z: String, // zi
+    s: String, // sequence
 }
 
 impl ChaiziRow {
@@ -49,8 +49,20 @@ fn build_wenshu() -> Vec<ChaiziRow> {
 fn main() {
     let flypy_data = flypy::parse_codes();
     let flypy_len = flypy_data.len();
-    let parts = flypy::get_parts(&flypy_data);
+    let mut parts = flypy::get_parts(&flypy_data);
+    let extras = vec![
+        ("⺝", 'o'),
+        ("卅", 'f'),
+        ("𧾷", 'z'),
+        ("𥫗", 'v'),
+        ("龰", 'r'),
+        ("𫜹", 'e'),
+    ];
+    for (k, v) in extras.into_iter() {
+        parts.insert(k.to_owned(), v);
+    }
     println!("{:?}", parts);
+    // return;
     let mut flypy: HashMap<String, Vec<String>> = HashMap::new();
     for zi in flypy_data {
         flypy
@@ -59,13 +71,78 @@ fn main() {
             .push(zi.fly_code.slice_ascii(..4).unwrap().to_string());
     }
 
-    let (mut correct, mut incorrect, mut cannot_build, mut extra) = (0, 0, 0, 0);
     let wenshu = build_wenshu();
+    let mut wenshu_map = HashMap::new();
+    for x in wenshu.iter() {
+        wenshu_map.insert(x.z.clone(), x.s.clone());
+    }
+
+    fn find_first(
+        zir: &ChaiziRow,
+        parts: &HashMap<String, char>,
+        wenshu: &HashMap<String, String>,
+    ) -> Option<String> {
+        let mut zi = zir.clone();
+
+        let mut loop_counter = 0;
+        loop {
+            if loop_counter > 10 {
+                print!("🟡 {} -> {} 递归 || ", zir.z, zi.z);
+                break None;
+            }
+            loop_counter += 1;
+            let part = &zi.first();
+            if let Some(x) = parts.get(part) {
+                break Some((&x).to_string());
+            }
+            if let Some(o) = wenshu.get(part) {
+                if part == o {
+                    break None;
+                } // 防止死循环
+                zi = ChaiziRow {
+                    z: zi.first().clone(),
+                    s: o.clone(),
+                };
+            } else {
+                break None;
+            }
+        }
+    }
+
+    fn find_last(
+        zir: &ChaiziRow,
+        parts: &HashMap<String, char>,
+        wenshu: &HashMap<String, String>,
+    ) -> Option<String> {
+        let mut zi = zir.clone();
+        loop {
+            let part = &zi.last();
+            if let Some(x) = parts.get(part) {
+                break Some(x.to_string());
+            }
+            if let Some(o) = wenshu.get(part) {
+                if part == o {
+                    break None;
+                } // 防止死循环
+                zi = ChaiziRow {
+                    z: zi.last().clone(),
+                    s: o.clone(),
+                };
+            } else {
+                break None;
+            }
+        }
+    }
+
+    let (mut correct, mut incorrect, mut cannot_build, mut extra) = (0, 0, 0, 0);
     let all_count = wenshu.len();
     let now = std::time::Instant::now(); // benchmark
     for zi in wenshu {
         let xingma;
-        match (parts.get(&zi.first()), parts.get(&zi.last())) {
+        match (
+            find_first(&zi, &parts, &wenshu_map),
+            find_last(&zi, &parts, &wenshu_map),
+        ) {
             (Some(first), Some(last)) => {
                 xingma = format!("{}{}", first, last);
             }
@@ -78,15 +155,16 @@ fn main() {
             let mut flag = false;
             for code in codes {
                 if code.ends_with(&xingma) {
-                    print!("✅ {}, {} == {} // ", zi.z, xingma, code);
+                    print!("✅ {} {} == {} || ", zi.z, xingma, code);
                     correct += 1;
                     flag = true;
                     break;
                 }
             }
+            // dbg!(&zi.z, &codes, &xingma);
             if !flag {
                 incorrect += 1;
-                print!("⛔ {} : {} != {} // ", zi.z, xingma, codes[0]);
+                print!("⛔ {} {} != {} || ", zi.z, xingma, codes[0]);
             }
         } else {
             // not in flypy scheme
@@ -96,12 +174,12 @@ fn main() {
     }
     println!("Elapsed: {:.2?}", now.elapsed());
     println!(
-        "\nAs of {all_count} characters, {correct} correct, {incorrect} incorrect, {extra} new, {cannot_build} cant be built."
+        "\nAs of {all_count} characters, {correct} correct, {incorrect} incorrect, {extra} new, {cannot_build} cannot be built."
     );
     let correct_rate = correct as f32 / (correct + incorrect) as f32;
     let cov_rate = correct as f32 / flypy_len as f32;
     println!(
-        "可生成的表内正确率为 {:.2}%，表内字的覆盖率为 {:.2}%",
+        "可生成的小鹤音形表内字的正确率为 {:.2}%，相当于覆盖了表内字的 {:.2}%",
         correct_rate * 100.,
         cov_rate * 100.
     );

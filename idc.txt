@@ -1,0 +1,47 @@
+U+2FF0
+
+⿰ LeftToRight
+
+U+2FF1
+
+⿱ AboveToBelow
+
+U+2FF2
+
+⿲ LeftToMiddleAndRight
+
+U+2FF3
+
+⿳ AboveToMiddleAndBelow
+
+U+2FF4
+
+⿴ FullSurround
+
+U+2FF5
+
+⿵ SurroundFromAbove
+
+U+2FF6
+
+⿶ SurroundFromelow
+
+U+2FF7
+
+⿷ SurroundFromLeft
+
+U+2FF8
+
+⿸ SurroundFromUpperLeft
+
+U+2FF9
+
+⿹ SurroundFromUpperRight
+
+U+2FFA
+
+⿺ SurroundFromLowerLeft
+
+U+2FFB
+
+⿻ Overlaid
