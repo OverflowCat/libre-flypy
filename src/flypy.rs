@@ -1,3 +1,5 @@
+pub mod idc;
+
 use ascii::AsciiChar;
 use ascii::AsciiStr;
 use serde::de::{self, Visitor};
@@ -117,6 +119,7 @@ pub fn get_separated_parts(
 
 pub fn get_parts(data: &Vec<FlypyChar>) -> HashMap<String, String> {
     let mut parts = HashMap::new();
+    check_fly_code(&data);
     for zi in data {
         assert_eq!(
             zi.first_py.clone(),

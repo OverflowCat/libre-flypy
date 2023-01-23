@@ -1,8 +1,7 @@
-use anyhow::Chain;
 use ascii::AsAsciiStr;
-use rusqlite::{Connection, Result};
-use std::{collections::HashMap, io::Split};
-
+use rayon::prelude::*;
+use rusqlite::Connection;
+use std::collections::HashMap;
 pub mod flypy;
 
 #[derive(Debug)]
@@ -63,6 +62,7 @@ fn main() {
     let (mut correct, mut incorrect, mut cannot_build, mut extra) = (0, 0, 0, 0);
     let wenshu = build_wenshu();
     let all_count = wenshu.len();
+    let now = std::time::Instant::now(); // benchmark
     for zi in wenshu {
         let xingma;
         match (parts.get(&zi.first()), parts.get(&zi.last())) {
@@ -94,6 +94,7 @@ fn main() {
             extra += 1;
         }
     }
+    println!("Elapsed: {:.2?}", now.elapsed());
     println!(
         "\nAs of {all_count} characters, {correct} correct, {incorrect} incorrect, {extra} new, {cannot_build} cant be built."
     );
