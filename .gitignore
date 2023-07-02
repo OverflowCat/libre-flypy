@@ -2,3 +2,8 @@ ids
 target
 *.db
 *.sqlite
+
+
+# Added by cargo
+
+/target
