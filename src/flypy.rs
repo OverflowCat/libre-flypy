@@ -11,26 +11,6 @@ use std::fs;
 type FlyCode = [AsciiChar; 4];
 pub struct FlyCodeVisitor {}
 
-/* impl<'de> Visitor<'de> for FlyCodeVisitor {
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("Space separated 4-letter codes")
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Vec<FlyCode>, E>
-    where
-        E: de::Error,
-    {
-        Ok(vec![[
-            AsciiChar::P,
-            AsciiChar::P,
-            AsciiChar::P,
-            AsciiChar::P,
-        ]])
-    }
-
-    type Value = Vec<FlyCode>;
-}
-
 impl<'de> Deserialize<'de> for Vec<FlyCode> {
     fn deserialize<D>(deserializer: D) -> Result<i32, ()>
     where

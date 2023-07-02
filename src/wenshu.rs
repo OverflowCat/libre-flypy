@@ -56,7 +56,7 @@ fn main() {
         ("𧾷", 'z'),
         ("𥫗", 'v'),
         ("龰", 'r'),
-        ("𫜹", 'e'),
+        ("𫜹", 'e'), // TODO: need first part, last part
     ];
     for (k, v) in extras.into_iter() {
         parts.insert(k.to_owned(), v);
@@ -161,7 +161,6 @@ fn main() {
                     break;
                 }
             }
-            // dbg!(&zi.z, &codes, &xingma);
             if !flag {
                 incorrect += 1;
                 print!("⛔ {} {} != {} || ", zi.z, xingma, codes[0]);
