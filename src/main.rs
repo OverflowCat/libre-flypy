@@ -3,7 +3,7 @@ mod roots;
 
 use std::{
     collections::HashMap,
-    io::{BufRead, BufReader},
+    io::{BufRead, BufReader, Write},
 };
 
 use ids::Tree;
@@ -24,6 +24,7 @@ pub fn parse_file() {
     loop {
         todos = todos
             .into_iter()
+            .rev()
             .filter_map(|(character, tree)| {
                 let first_part = tree.get_first_leaf();
                 let last_part = tree.get_last_leaf();
@@ -37,8 +38,12 @@ pub fn parse_file() {
                         character, first_part, last_part, first_code, last_code
                     );
                     done.insert(character, format!("{}{}", first_code, last_code));
-                    firsts.insert(character, *first_code);
-                    lasts.insert(character, *last_code);
+                    if !firsts.contains_key(&character) {
+                        firsts.insert(character, first_code.clone());
+                    }
+                    if !lasts.contains_key(&character) {
+                        lasts.insert(character, last_code.clone());
+                    }
                     None
                 } else {
                     // println!("{}: {}{} not found", character, first_part, last_part);
@@ -46,14 +51,32 @@ pub fn parse_file() {
                 }
             })
             .collect();
-        let curr_len = todos.len();
+        let curr_len = done.len();
         if curr_len == prev_len {
             break;
         }
         prev_len = curr_len;
     }
     println!("{:?}", done);
+    println!("{:?}", todos.len());
     println!("总计: {}", prev_len);
+
+    let output = std::fs::File::create("./output.txt").expect("File not found.");
+    let mut writer = std::io::BufWriter::new(output);
+    for (character, code) in done {
+        writer
+            .get_mut()
+            .write(format!("{}\t{}\n", character, code).as_bytes())
+            .expect("Write failed.");
+    }
+    let missing = std::fs ::File::create("./missing.txt").expect("File not found.");
+    let mut writer = std::io::BufWriter::new(missing);
+    for (character, tree) in todos {
+        writer
+            .get_mut()
+            .write(format!("{}\t{:?}\n", character, tree).as_bytes())
+            .expect("Write failed.");
+    }
 }
 
 fn main() {

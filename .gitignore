@@ -1,4 +1,4 @@
-ids
+./ids
 target
 *.db
 *.sqlite
