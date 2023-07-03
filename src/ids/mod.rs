@@ -24,6 +24,8 @@ fn remove_parenthesis(s: String) -> String {
             in_parenthesis = true;
         } else if c == ')' || c == ']' || c == '}' {
             in_parenthesis = false;
+        } else if c == '↷' {
+            continue;
         } else if !in_parenthesis {
             t.push(c);
         }

@@ -13,9 +13,11 @@ pub fn parse_file() {
     let mut done: HashMap<char, String> = HashMap::new();
     let mut todos: Vec<(char, Tree)> = Vec::new();
     // read ./ids/ids_lv2.txt line by line
-    let file = std::fs::File::open("./ids/ids_lv2.txt").expect("File not found.");
-    let reader = BufReader::new(file);
-    for line in reader.lines() {
+    let ids_lv2 = std::fs::File::open("./ids/ids_lv2.txt").expect("File not found.");
+    let lv2_reader = BufReader::new(ids_lv2);
+    let my_ids = std::fs::File::open("./my_ids.txt").expect("File not found.");
+    let my_reader = BufReader::new(my_ids);
+    for line in lv2_reader.lines().chain(my_reader.lines()) {
         let line = line.expect("Line not found.");
         let (character, sequence) = ids::parse_ids(line);
         todos.push((character, sequence));
@@ -26,6 +28,9 @@ pub fn parse_file() {
             .into_iter()
             .rev()
             .filter_map(|(character, tree)| {
+                if done.contains_key(&character) {
+                    return None;
+                }
                 let first_part = tree.get_first_leaf();
                 let last_part = tree.get_last_leaf();
                 let first_code = firsts.get(&first_part);
@@ -33,10 +38,7 @@ pub fn parse_file() {
                 if first_code.is_some() && last_code.is_some() {
                     let mut first_code = (*first_code.unwrap()).clone();
                     let mut last_code = (*last_code.unwrap()).clone();
-                    println!(
-                        "{}: {}{} {}{}",
-                        character, first_part, last_part, first_code, last_code
-                    );
+                    // println!("{}: {}{} {}{}", character, first_part, last_part, first_code, last_code);
                     done.insert(character, format!("{}{}", first_code, last_code));
                     if first_part == '辶' || first_part == '廴' {
                         (first_code, last_code) = (last_code, first_code);
@@ -66,9 +68,7 @@ pub fn parse_file() {
         }
         prev_len = curr_len;
     }
-    println!("{:?}", done);
-    println!("{:?}", todos.len());
-    println!("总计: {}", prev_len);
+    println!("未成功：{} // 成功: {}", todos.len(), prev_len);
 
     let output = std::fs::File::create("./output.txt").expect("File not found.");
     let mut writer = std::io::BufWriter::new(output);

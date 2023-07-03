@@ -1,18 +1,31 @@
 use std::fmt::Debug;
 
 #[derive(PartialEq, Eq, Hash)]
+/// Represents an ideographic description character.
 pub enum Idc {
+    /// ⿰ - Left-to-right
     LeftToRight,
+    /// ⿱ - Above-to-below
     AboveToBelow,
+    /// ⿲ - Left-to-middle-and-right
     LeftToMiddleAndRight,
+    /// ⿳ - Above-to-middle-and-below
     AboveToMiddleAndBelow,
+    /// ⿴ - Full surround
     FullSurround,
+    /// ⿵ - Surround from above
     SurroundFromAbove,
+    /// ⿶ - Surround from below
     SurroundFromBelow,
+    /// ⿷ - Surround from left
     SurroundFromLeft,
+    /// ⿸ - Surround from upper left
     SurroundFromUpperLeft,
+    /// ⿹ - Surround from upper right
     SurroundFromUpperRight,
+    /// ⿺ - Surround from lower left
     SurroundFromLowerLeft,
+    /// ⿻ - Overlaid
     Overlaid,
 }
 
@@ -72,6 +85,7 @@ impl Idc {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub enum Tree {
     Node {
         idc: Idc,
@@ -89,6 +103,9 @@ impl From<&str> for Tree {
         let mut stack = Vec::with_capacity(3);
         for c in s.chars().rev() {
             if let Ok(idc) = Idc::try_from(c) {
+                // if idc == Idc::SurroundFromBelow {
+                //     println!("<< {}: {:?} >>", s, idc);
+                // }
                 let children = (0..idc.get_children_count())
                     .map(|_| stack.pop().expect("Not enough children."))
                     .collect();
@@ -102,12 +119,18 @@ impl From<&str> for Tree {
                 stack.push(Tree::Leaf { value: c });
             }
         }
-        let mut root = stack.pop().expect("No root.");
-        match &mut root {
-            Tree::Node { root, .. } => *root = true,
-            Tree::Leaf { .. } => {}
+        match stack.pop().expect("No root.") {
+            Tree::Node { idc, children, .. } => Tree::Node {
+                idc,
+                children,
+                root: true,
+            },
+            Tree::Leaf { value } => Tree::Node {
+                idc: Idc::LeftToRight,
+                children: vec![Tree::Leaf { value }, Tree::Leaf { value }],
+                root: true,
+            },
         }
-        root
     }
 }
 
@@ -131,7 +154,18 @@ impl Tree {
         match self {
             Tree::Node {
                 idc: _, children, ..
-            } => children[0].get_first_leaf(),
+            } => {
+                let mut child = &children[0];
+                match child {
+                    Tree::Leaf { value, .. } => {
+                        if ['凵', '𠃊'].contains(value) {
+                            child = &children[1];
+                        }
+                    }
+                    _ => {}
+                }
+                child.get_first_leaf()
+            }
             Tree::Leaf { value } => *value,
         }
     }
