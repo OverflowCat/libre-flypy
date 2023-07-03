@@ -16,7 +16,23 @@ fn split_ids(s: &str) -> Vec<&str> {
         .collect()
 }
 
-pub fn parse_ids(s: &str) -> (char, Tree) {
+fn remove_parenthesis(s: String) -> String {
+    let mut t = String::with_capacity(s.len());
+    let mut in_parenthesis = false;
+    for c in s.chars() {
+        if c == '(' || c == '[' || c == '{' {
+            in_parenthesis = true;
+        } else if c == ')' || c == ']' || c == '}' {
+            in_parenthesis = false;
+        } else if !in_parenthesis {
+            t.push(c);
+        }
+    }
+    t
+}
+
+pub fn parse_ids(s: String) -> (char, Tree) {
+    let s = remove_parenthesis(s);
     let (character, ids) = s.split_once('\t').expect("No tab found.");
     let ids = split_ids(ids);
     (

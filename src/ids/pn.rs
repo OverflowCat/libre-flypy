@@ -73,8 +73,14 @@ impl Idc {
 }
 
 pub enum Tree {
-    Node { idc: Idc, children: Vec<Tree> },
-    Leaf { value: char },
+    Node {
+        idc: Idc,
+        children: Vec<Tree>,
+        root: bool,
+    },
+    Leaf {
+        value: char,
+    },
 }
 
 impl From<&str> for Tree {
@@ -86,20 +92,29 @@ impl From<&str> for Tree {
                 let children = (0..idc.get_children_count())
                     .map(|_| stack.pop().expect("Not enough children."))
                     .collect();
-                let node = Tree::Node { idc, children };
+                let node = Tree::Node {
+                    idc,
+                    children,
+                    root: false,
+                };
                 stack.push(node);
             } else {
                 stack.push(Tree::Leaf { value: c });
             }
         }
-        stack.pop().expect("No root found.")
+        let mut root = stack.pop().expect("No root.");
+        match &mut root {
+            Tree::Node { root, .. } => *root = true,
+            Tree::Leaf { .. } => {}
+        }
+        root
     }
 }
 
 impl Debug for Tree {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> Result<(), std::fmt::Error> {
         match self {
-            Tree::Node { idc, children } => {
+            Tree::Node { idc, children, .. } => {
                 write!(f, "{:?}(", idc)?;
                 for child in children {
                     write!(f, "{:?}", child)?;
@@ -114,28 +129,44 @@ impl Debug for Tree {
 impl Tree {
     pub fn get_first_leaf(&self) -> char {
         match self {
-            Tree::Node { idc: _, children } => children[0].get_first_leaf(),
+            Tree::Node {
+                idc: _, children, ..
+            } => children[0].get_first_leaf(),
             Tree::Leaf { value } => *value,
         }
     }
 
     pub fn get_last_leaf(&self) -> char {
         match self {
-            Tree::Node { idc, children } => {
-                // if *idc == Idc::SurroundFromLowerLeft {
-                //     let last_leaf = children[0].get_last_leaf();
-                //     if last_leaf != self.get_first_leaf() {
-                //         println!("== {}: {}", last_leaf, self.get_first_leaf());
-                //         return last_leaf;
-                //     }
-                // }
+            Tree::Node {
+                idc,
+                children,
+                root,
+            } => {
+                if *idc == Idc::SurroundFromLowerLeft && !root {
+                    match children.first() {
+                        Some(Tree::Leaf { value }) => {
+                            if *value == '辶' {
+                                println!("{:?}", children);
+                                // std::thread::sleep(std::time::Duration::from_secs(1));
+                                return '辶';
+                            } else if *value == '廴' {
+                                println!("{:?}", children);
+                                // std::thread::sleep(std::time::Duration::from_secs(1));
+                                return '廴';
+                            }
+                        }
+                        _ => {}
+                    }
+                }
                 children[children.len() - 1].get_last_leaf()
             }
             Tree::Leaf { value } => *value,
         }
     }
 
-    /*     pub fn traverse_first(&self, f: &dyn Fn(&Self) -> Option<char>) -> char {
+    /*
+    pub fn traverse_first(&self, f: &dyn Fn(&Self) -> Option<char>) -> char {
         if let Some(value) = f(&self) {
             value
         } else {

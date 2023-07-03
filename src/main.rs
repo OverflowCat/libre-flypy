@@ -17,7 +17,7 @@ pub fn parse_file() {
     let reader = BufReader::new(file);
     for line in reader.lines() {
         let line = line.expect("Line not found.");
-        let (character, sequence) = ids::parse_ids(&line);
+        let (character, sequence) = ids::parse_ids(line);
         todos.push((character, sequence));
     }
     let mut prev_len = 0;
@@ -31,13 +31,16 @@ pub fn parse_file() {
                 let first_code = firsts.get(&first_part);
                 let last_code = lasts.get(&last_part);
                 if first_code.is_some() && last_code.is_some() {
-                    let first_code = first_code.unwrap();
-                    let last_code = last_code.unwrap();
+                    let mut first_code = (*first_code.unwrap()).clone();
+                    let mut last_code = (*last_code.unwrap()).clone();
                     println!(
                         "{}: {}{} {}{}",
                         character, first_part, last_part, first_code, last_code
                     );
                     done.insert(character, format!("{}{}", first_code, last_code));
+                    if first_part == '辶' || first_part == '廴' {
+                        (first_code, last_code) = (last_code, first_code);
+                    }
                     if !firsts.contains_key(&character) {
                         firsts.insert(character, first_code.clone());
                     }
@@ -46,6 +49,12 @@ pub fn parse_file() {
                     }
                     None
                 } else {
+                    if first_code.is_some() && !firsts.contains_key(&character) {
+                        firsts.insert(character, first_code.unwrap().clone());
+                    }
+                    if last_code.is_some() && !lasts.contains_key(&character) {
+                        lasts.insert(character, last_code.unwrap().clone());
+                    }
                     // println!("{}: {}{} not found", character, first_part, last_part);
                     Some((character, tree))
                 }
@@ -69,7 +78,7 @@ pub fn parse_file() {
             .write(format!("{}\t{}\n", character, code).as_bytes())
             .expect("Write failed.");
     }
-    let missing = std::fs ::File::create("./missing.txt").expect("File not found.");
+    let missing = std::fs::File::create("./missing.txt").expect("File not found.");
     let mut writer = std::io::BufWriter::new(missing);
     for (character, tree) in todos {
         writer
@@ -80,6 +89,5 @@ pub fn parse_file() {
 }
 
 fn main() {
-    println!("Hello, world!");
     parse_file();
 }
