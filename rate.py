@@ -15,6 +15,7 @@ with open(os.path.join(os.path.dirname(__file__), 'flypy/小鹤音形单字全�
 
 count = 0
 output = []
+zis = []
 for item in flypy:
     code = item['first_py'] + item['last_py']
     zi = item['character']
@@ -22,9 +23,11 @@ for item in flypy:
     if zi not in gen:
         print(f"{zi}: missing {code}")
         output.append(f"{zi}\t{code}\n")
+        zis.append(zi)
     elif gen[zi] != code:
         print(f"{zi}: expected {code} but got {gen[zi]}")
         output.append(f"{zi}\t{code}\n")
+        zis.append(zi)
     else:
         count += 1
 
@@ -32,3 +35,5 @@ print(f"{count} correct / {len(flypy)} total")
 
 with open("查漏补缺.txt", "w") as f:
     f.writelines(output)
+
+print("".join(zis))
