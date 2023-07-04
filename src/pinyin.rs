@@ -5,10 +5,12 @@ use std::{
 };
 
 pub fn build_hashmap() -> HashMap<char, Vec<Pinyin>> {
+    let mine = File::open("my_pinyin.txt").unwrap();
     let file = File::open("pinyin-data/pinyin.txt").unwrap();
+    let my_reader = BufReader::new(mine);
     let reader = BufReader::new(file);
     let mut map = HashMap::new();
-    for line in reader.lines() {
+    for line in my_reader.lines().chain(reader.lines()) {
         // dont use u+, use char after #
         let line = line.unwrap();
         let (_, pinyin_and_zi) = line.split_once(": ").unwrap();
@@ -24,7 +26,7 @@ pub fn build_hashmap() -> HashMap<char, Vec<Pinyin>> {
             })
             .collect();
         if let Some(zi) = zi.chars().next() {
-            map.insert(zi, pinyins);
+            map.entry(zi).or_insert_with(|| pinyins);
         }
     }
     map
@@ -346,9 +348,8 @@ impl Pinyin {
                     };
                     match &self.yunmu {
                         AI | AN | AO => 'a',
-                        EI | EN => 'e',
+                        EI | EN | ER => 'e',
                         OU => 'o',
-                        ER => 'r',
                         _ => unreachable!(),
                     }
                 }

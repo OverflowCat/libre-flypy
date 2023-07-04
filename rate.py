@@ -15,7 +15,7 @@ flypy = {}
 with open(os.path.join(os.path.dirname(__file__), 'flypy/小鹤音形单字全码码表.json'), 'r', encoding='utf-8') as f:
     flypy = json.load(f)
 
-count = 0
+xk_correct_count, full_correct_count = 0, 0
 output = []
 zis = []
 for item in flypy:
@@ -32,6 +32,7 @@ for item in flypy:
             print(
                 f"{zi}: 音码错误, expected [green]{code}[/green] but got [medium_orchid]{' / '.join(gen[zi])}[/medium_orchid]"
             )
+            xk_correct_count += 1
         else:
             print(
                 f"{zi}: 形码错误, expected [green]{code}[/green] but got [red]{' / '.join(gen[zi])}[/red]"
@@ -39,12 +40,16 @@ for item in flypy:
             output.append(f"{zi}\t{code}\n")
         zis.append(zi)
     else:
-        count += 1
+        full_correct_count += 1
+        xk_correct_count += 1
 
 total = len(flypy)
 
-print(f"[green]{count}[/green] correct / [blue]{total}[/blue] total,",
-      f"[pink]{count/total*100:.2f}%[/pink]")
+print(f"[green]{xk_correct_count}[/green] / [blue]{total}[/blue] total,",
+        f"[pink]{xk_correct_count/total*100:.2f}%[/pink]")
+
+print(f"[green]{full_correct_count}[/green] / [blue]{total}[/blue] total,",
+      f"[pink]{full_correct_count/total*100:.2f}%[/pink]")
 
 with open("查漏补缺.txt", "w") as f:
     f.writelines(output)
