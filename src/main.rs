@@ -1,4 +1,5 @@
 mod ids;
+pub mod pinyin;
 mod roots;
 
 use std::{
@@ -18,7 +19,13 @@ pub fn parse_file() {
     let my_ids = std::fs::File::open("./my_ids.txt").expect("File not found.");
     let my_reader = BufReader::new(my_ids);
     for line in lv2_reader.lines().chain(my_reader.lines()) {
-        let line = line.expect("Line not found.");
+        let mut line = line.expect("Line not found.");
+        if let Some(i) = line.find("//") {
+            if i == 0 {
+                continue;
+            }
+            line.truncate(i);
+        }
         let (character, sequence) = ids::parse_ids(line);
         todos.push((character, sequence));
     }
@@ -68,11 +75,26 @@ pub fn parse_file() {
         }
         prev_len = curr_len;
     }
-    println!("未成功：{} // 成功: {}", todos.len(), prev_len);
+    print!("未成功：{} // 成功: {} // ", todos.len(), prev_len);
+
+    let pinyin_data = pinyin::build_hashmap();
+    let mut done_with_pinyin = Vec::with_capacity(done.len());
+    for (character, code) in done {
+        if let Some(pinyin) = pinyin_data.get(&character) {
+            for x in pinyin {
+                done_with_pinyin.push((character, format!("{}{}", x.into_xnhe(), code)));
+            }
+        } else {
+            // no pinyin data found
+            done_with_pinyin.push((character, format!("__{}", code)));
+            continue;
+        }
+    }
+    println!("全部成功: {}", done_with_pinyin.len());
 
     let output = std::fs::File::create("./output.txt").expect("File not found.");
     let mut writer = std::io::BufWriter::new(output);
-    for (character, code) in done {
+    for (character, code) in done_with_pinyin {
         writer
             .get_mut()
             .write(format!("{}\t{}\n", character, code).as_bytes())
@@ -89,5 +111,12 @@ pub fn parse_file() {
 }
 
 fn main() {
+    let time = std::time::Instant::now();
     parse_file();
+    let elapsed = time.elapsed();
+    println!(
+        "Elapsed: {}.{:03} seconds",
+        elapsed.as_secs(),
+        elapsed.subsec_millis()
+    );
 }

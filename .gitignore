@@ -1,9 +1,13 @@
 ./ids
-target
+./pinyin-data
 *.db
 *.sqlite
+*.json
+*.7z
 
-
-# Added by cargo
+missing.txt
+output.txt
+查漏补缺.txt
 
 /target
+rate.py

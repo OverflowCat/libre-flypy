@@ -181,12 +181,10 @@ impl Tree {
                     match children.first() {
                         Some(Tree::Leaf { value }) => {
                             if *value == '辶' {
-                                println!("{:?}", children);
-                                // std::thread::sleep(std::time::Duration::from_secs(1));
+                                // println!("{:?}", children);
                                 return '辶';
                             } else if *value == '廴' {
-                                println!("{:?}", children);
-                                // std::thread::sleep(std::time::Duration::from_secs(1));
+                                // println!("{:?}", children);
                                 return '廴';
                             }
                         }
