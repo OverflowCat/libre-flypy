@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "flypy-ext"
-version = "0.1.0"
+name = "libre-flypy"
+version = "1.0.0"

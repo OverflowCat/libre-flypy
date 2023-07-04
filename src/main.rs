@@ -9,6 +9,8 @@ use std::{
 
 use ids::Tree;
 
+const OUTPUT_NO_PINYIN: bool = false;
+
 pub fn parse_file() {
     let (mut firsts, mut lasts) = roots::generate();
     let mut done: HashMap<char, String> = HashMap::new();
@@ -84,7 +86,7 @@ pub fn parse_file() {
             for x in pinyin {
                 done_with_pinyin.push((character, format!("{}{}", x.into_xnhe(), code)));
             }
-        } else {
+        } else if OUTPUT_NO_PINYIN {
             // no pinyin data found
             done_with_pinyin.push((character, format!("__{}", code)));
             continue;
