@@ -103,12 +103,16 @@ impl From<&str> for Tree {
         let mut stack = Vec::with_capacity(3);
         for c in s.chars().rev() {
             if let Ok(idc) = Idc::try_from(c) {
-                // if idc == Idc::SurroundFromBelow {
-                //     println!("<< {}: {:?} >>", s, idc);
-                // }
-                let children = (0..idc.get_children_count())
+                let mut children: Vec<_> = (0..idc.get_children_count())
                     .map(|_| stack.pop().expect("Not enough children."))
                     .collect();
+                if idc == Idc::SurroundFromBelow {
+                    if let Tree::Leaf { value } = children[0] {
+                        if ['凵', '𠃊'].contains(&value) {
+                            children.swap(0, 1);
+                        }
+                    }
+                }
                 let node = Tree::Node {
                     idc,
                     children,
@@ -155,15 +159,15 @@ impl Tree {
             Tree::Node {
                 idc: _, children, ..
             } => {
-                let mut child = &children[0];
-                match child {
-                    Tree::Leaf { value, .. } => {
-                        if ['凵', '𠃊'].contains(value) {
-                            child = &children[1];
-                        }
-                    }
-                    _ => {}
-                }
+                let child = &children[0];
+                // match child {
+                //     Tree::Leaf { value, .. } => {
+                //         if ['𠃊'].contains(value) {
+                //             child = &children[1];
+                //         }
+                //     }
+                //     _ => {}
+                // }
                 child.get_first_leaf()
             }
             Tree::Leaf { value } => *value,
